@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+
+<head>
+    <script src="jquery.min.js"></script>
+    <script>
+        var $ = jQuery = require('jquery');
+        try {
+            $ = jQuery = module.exports;
+            // If you want module.exports to be empty, uncomment:
+            // module.exports = {};
+        } catch (e) {
+        }
+    </script>
+    <script src="semantic/dist/semantic.min.js" type="text/javascript"></script>
+    <script src="bower_components/knockout/dist/knockout.js" type="text/javascript"></script>
+    <script src="master.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="semantic/dist/semantic.min.css">
+    <link rel="stylesheet" href="master.css">
+    <style>
+        .manga.image {
+            max-height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+<div id="menu"></div>
+<div class="ui sticky bottom attached menu">
+    <div class="ui grid container">
+        <div class="tablet computer only row">
+            <a class="back icon item">
+                <i class="left arrow icon"></i>
+            </a>
+
+            <div class="item">
+                <div class="ui breadcrumb">
+                    <div class="section" data-bind="text: chapter.manga"></div>
+                    <div class="divider"> /</div>
+                    <div class="active section" data-bind="text: chapter.title"></div>
+                </div>
+            </div>
+            <div class="item">
+                <i class="file outline icon"></i>
+                Pages:
+                <div data-bind="text: chapter.images().length"></div>
+            </div>
+            <div class="right menu">
+                <div class="ui pagination menu">
+                    <a class="icon item" data-bind="visible: chapter.page() > 0" onclick="previousPage()">
+                        <i class="left chevron icon"></i>
+                    </a>
+
+                    <div class="item" data-bind="text: chapter.page()"></div>
+                    <a class="icon item" data-bind="visible: chapter.page() < chapter.images().length"
+                       onclick="nextPage()">
+                        <i class="right chevron icon"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="mobile only row">
+            <a class="back icon item">
+                <i class="left arrow icon"></i>
+            </a>
+            <div class="item" data-bind="text: chapter.manga"></div>
+            <div class="right menu">
+                <div class="ui right pagination menu">
+                    <a class="icon item" data-bind="visible: chapter.page() > 1" onclick="previousPage()">
+                        <i class="left chevron icon"></i>
+                    </a>
+
+                    <div class="item" data-bind="text: chapter.page()"></div>
+                    <a class="icon item" data-bind="visible: chapter.page() < chapter.images().length"
+                       onclick="nextPage()">
+                        <i class="right chevron icon"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui basic inverted segment">
+    <div class="ui dimmer" id="chapter_loader">
+        <div class="ui loader"></div>
+    </div>
+    <a class="ui fluid image" onclick="nextPage()">
+        <img class="manga image"/>
+    </a>
+
+</div>
+<script>
+    function parse(val) {
+        var result = "Not found",
+                tmp = [];
+        location.search
+            //.replace ( "?", "" )
+            // this is better, there might be a question mark inside
+                .substr(1)
+                .split("&")
+                .forEach(function (item) {
+                    tmp = item.split("=");
+                    if (tmp[0] === val) result = decodeURIComponent(tmp[1]);
+                });
+        return result;
+    }
+</script>
+<script>
+    function nextPage() {
+        chapter.page(chapter.page() + 1);
+        showPage(chapter.page());
+    }
+    function previousPage() {
+        chapter.page(chapter.page() - 1);
+        showPage(chapter.page());
+    }
+    function showPage(page) {
+        $("#chapter_dimmer").addClass("active");
+        for (var i = 0; i < chapter.images().length; i++) {
+            var image = chapter.images()[i];
+            if (image[0] == page) {
+                $(".manga.image")
+                        .load(function () {
+                            $("#chapter_dimmer").removeClass("active");
+                        })
+                    //.transition('fly right')
+                        .attr("src", "https://cdn.mangaeden.com/mangasimg/" + image[1]);
+            }
+        }
+    }
+    var chapter = {
+        page: ko.observable(1),
+        title: ko.observable(parse("title")),
+        manga: ko.observable(parse("manga")),
+        images: ko.observableArray()
+    };
+    $(function () {
+        $(".tab.menu .item").tab();
+        $(".ui.sticky").sticky();
+        $.getJSON("https://www.mangaeden.com/api/chapter/" + parse("chapter"), function (data) {
+            chapter.images(data.images);
+            showPage(chapter.page());
+        });
+        ko.applyBindings(chapter);
+        document.title = chapter.manga() + " / " + chapter.title() + " - Manga Zap";
+    });
+</script>
+</body>
+
+</html>

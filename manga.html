@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+
+<head>
+    <script src="jquery.min.js"></script>
+    <script>
+        var $ = jQuery = require('jquery');
+        try {
+            $ = jQuery = module.exports;
+            // If you want module.exports to be empty, uncomment:
+            // module.exports = {};
+        } catch (e) {
+        }
+    </script>
+
+    <script src="tablesort.js"></script>
+    <script src="semantic/dist/semantic.min.js" type="text/javascript"></script>
+    <script src="bower_components/knockout/dist/knockout.js" type="text/javascript"></script>
+    <script src="master.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="semantic/dist/semantic.min.css">
+    <link rel="stylesheet" href="master.css">
+</head>
+
+<body>
+<div id="menu"></div>
+<div class="ui sticky bottom attached menu">
+    <div class="ui grid container">
+        <div class="tablet computer only row">
+            <a class="icon back item" title="Back">
+                <i class="left arrow icon"></i>
+            </a>
+
+            <div class="item">
+                <i class="us flag" data-bind="visible: man.ga().language == 0"></i>
+                <i class="it flag" data-bind="visible: man.ga().language > 0"></i>
+                <i class="book icon" data-bind="visible: man.ga().language == undefined"></i>
+
+                <div data-bind="text: man.ga().title"></div>
+            </div>
+            <div class="item">
+                <div data-bind="text: man.ga().chapters_len"></div>
+                &nbsp; chapter(s)
+            </div>
+            <div class="right menu">
+                <div class="item">
+                    <!-- ko if: man.fave -->
+                    <a class="ui yellow icon labeled button remove_fave">
+                        <i class="star icon"></i>
+                        Favorited
+                    </a>
+                    <!-- /ko -->
+                    <!-- ko ifnot: man.fave -->
+                    <a class="ui icon button add_fave">
+                        <i class="yellow star icon"></i>
+                        Favorite
+                    </a>
+                    <!-- /ko -->
+                </div>
+
+            </div>
+        </div>
+        <div class="mobile only row">
+            <a class="icon back item" title="Back">
+                <i class="left arrow icon"></i>
+            </a>
+
+            <div class="item" data-bind="text: man.ga().title"></div>
+            <div class="right menu">
+                <!-- ko if: man.fave -->
+                <div class="item">
+                    <i class="yellow star link icon remove_fave"></i>
+                </div>
+                <!-- /ko -->
+                <!-- ko ifnot: man.fave -->
+                <div class="item">
+                    <i class="empty star link icon add_fave"></i>
+                </div>
+                <!-- /ko -->
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui clearing segment" data-bind="visible: man.ga().image != undefined">
+    <div class="ui stackable grid">
+        <div class="four wide column">
+            <img class="ui small left floated spaced image" data-bind="manga_image: man.ga().image"/>
+        </div>
+        <div class="twelve wide column">
+            <h3 class="ui header" data-bind="text: man.ga().title"></h3>
+            <ul class="list">
+                <li>
+                    Artist: <b data-bind="html: man.ga().artist"></b>
+                </li>
+                <li>
+                    Chapters: <b data-bind="text: man.ga().chapters_len"></b>
+                </li>
+                <li>
+                    Released: <b data-bind="text: man.ga().released"></b>
+                </li>
+            </ul>
+            <p data-bind="html: man.ga().description" style="font-style: italic;"></p>
+
+            <div class="ui labels" data-bind="foreach: man.cats">
+                <div class="ui label" data-bind="text: $data"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui segment">
+    <table class="ui sortable celled table">
+        <thead>
+        <tr>
+            <th class="descending">
+                #
+            </th>
+            <th class="descending">
+                <i class="font icon"></i>
+                Chapter Title
+            </th>
+            <th>
+                <i class="book icon"></i>
+                Read
+            </th>
+        </tr>
+        </thead>
+        <tbody data-bind="foreach: man.ga().chapters">
+        <tr>
+            <td data-bind="text: $data[0]"></td>
+            <td data-bind="text: $data[2]"></td>
+            <td>
+                <a class="chapter-link" data-bind="chapter_url: $data[3]">
+                    <i class="unhide link icon" data-bind="data_title: $data[2]"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    function parse(val) {
+        var result = "Not found",
+                tmp = [];
+        location.search
+            //.replace ( "?", "" )
+            // this is better, there might be a question mark inside
+                .substr(1)
+                .split("&")
+                .forEach(function (item) {
+                    tmp = item.split("=");
+                    if (tmp[0] === val) result = decodeURIComponent(tmp[1]);
+                });
+        return result;
+    }
+</script>
+<script>
+    var man = {
+        cats: ko.observableArray(),
+        ga: ko.observable({}),
+        fave: ko.observable(false)
+    };
+    $(function () {
+        $(".add_fave").click(addFave);
+        $(".remove_fave").click(removeFave);
+        $.getJSON("https://www.mangaeden.com/api/manga/" + parse("manga"), function (data) {
+            console.log(parse("manga"));
+            man.cats(data.categories);
+            man.ga(data);
+            document.title = data.title + " - Manga Zap";
+            $(".chapter-link").each(function () {
+                $(this).attr("href", $(this).attr("href") + "&manga=" + encodeURIComponent(man.ga().title) + "&title=" + encodeURIComponent($(this).find("i").first().attr("data-title")));
+            });
+            loadFave();
+        });
+        ko.applyBindings(man);
+    });
+</script>
+</body>
+
+</html>
