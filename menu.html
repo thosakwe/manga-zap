@@ -1,0 +1,45 @@
+<div class="ui attached inverted main menu">
+    <a class="active item" onclick="goHome()" style="cursor: hand;" tabindex="-1">
+        <i class="lightning icon"></i>
+        Manga Zap
+    </a>
+
+    <div class="right menu">
+        <div class="ui search item" style="display: none;">
+            <div class="ui transparent icon inverted input">
+                <input class="prompt manga_search" type="text" placeholder="Search manga...">
+                <i class="search link icon"></i>
+            </div>
+            <div class="results"></div>
+        </div>
+        <div class="item">
+            <a class="ui inverted basic yellow icon button" href="favorites.html">
+                <i class="star icon"></i>
+                Favorites
+            </a>
+        </div>
+    </div>
+</div>
+<div class="ui basic modal" id="splash">
+    <div class="content">
+        <div class="ui center aligned inverted segment">
+            <h1 class="ui icon header">
+                <i class="lightning icon"></i>
+                Manga Zap
+            </h1>
+            <p>
+                v0.1 - Regios Technologies
+            </p>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui inverted basic approve button">
+            Go
+        </div>
+    </div>
+</div>
+<script>
+    $(function() {
+        $("#splash").modal('show')
+    })
+</script>
