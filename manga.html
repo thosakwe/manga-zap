@@ -161,6 +161,7 @@
     $(function () {
         $(".add_fave").click(addFave);
         $(".remove_fave").click(removeFave);
+        $(".table").tablesort();
         $.getJSON("https://www.mangaeden.com/api/manga/" + parse("manga"), function (data) {
             console.log(parse("manga"));
             man.cats(data.categories);

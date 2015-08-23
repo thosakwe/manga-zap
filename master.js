@@ -93,7 +93,6 @@ $(function () {
         $(".back.item").click(function () {
             window.history.go(-1);
         });
-        $(".table").tablesort();
     }, 1000);
 
 });
